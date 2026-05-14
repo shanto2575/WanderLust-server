@@ -26,6 +26,7 @@ async function run() {
 
         const db = client.db('wanderlust')
         const destinationCollection = db.collection('destination')
+        const bookingCollection=db.collection('booking')
 
         app.get('/destination', async (req, res) => {
             const result = await destinationCollection.find().toArray()
@@ -62,6 +63,24 @@ async function run() {
             const {id}=req.params;
             const result= await destinationCollection.deleteOne({_id:new ObjectId(id)})
             res.send(result)
+        })
+
+        app.get('/booking/:userId',async(req,res)=>{
+            const {userId}=req.params;
+            const result=await bookingCollection.find({userId:userId}).toArray()
+            res.json(result)
+        })
+
+        app.delete('/booking/:bookingId',async(req,res)=>{
+            const {bookingId}=req.params;
+            const result=await bookingCollection.deleteOne({_id:new ObjectId(bookingId)})
+            res.json(result)
+        })
+
+        app.post('/booking',async(req,res)=>{
+            const bookingData=req.body;
+            const result=await bookingCollection.insertOne(bookingData)
+            res.json(result)
         })
 
 
