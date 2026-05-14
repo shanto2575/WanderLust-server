@@ -5,7 +5,9 @@ const express = require('express')
 const app = express()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors')
-const dotenv = require('dotenv')
+const dotenv = require('dotenv');
+const { createRemoteJWKSet, jwtVerify } = require("jose-cjs");
+const { error } = require("node:console");
 dotenv.config()
 const uri = process.env.MONGODB_URI
 const port = process.env.PORT;
@@ -20,33 +22,55 @@ const client = new MongoClient(uri, {
         deprecationErrors: true,
     }
 });
+
+const JWKS = createRemoteJWKSet(
+    new URL('http://localhost:3000/api/auth/jwks')
+)
+const verifyToken = async (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).json({ message: 'Unauthorized' })
+    }
+    const token = authHeader.split(' ')[1]
+    if (!token) {
+        return res.status(401).json({ message: 'Unauthorized' })
+    }
+    try {
+        const { payload } = await jwtVerify(token, JWKS)
+        console.log(payload)
+        next()
+    } catch (error) {
+        return res.status(403).json({ message: 'forbidden' })
+    }
+}
+
 async function run() {
     try {
         await client.connect();
 
         const db = client.db('wanderlust')
         const destinationCollection = db.collection('destination')
-        const bookingCollection=db.collection('booking')
+        const bookingCollection = db.collection('booking')
 
         app.get('/destination', async (req, res) => {
             const result = await destinationCollection.find().toArray()
             res.send(result);
         })
 
-        app.get('/destination/:id', async (req, res) => {
+        app.get('/destination/:id', verifyToken, async (req, res) => {
             const { id } = req.params;
             const result = await destinationCollection.findOne({ _id: new ObjectId(id) })
             res.send(result)
         })
 
-        app.post('/destination', async (req, res) => {
+        app.post('/destination',verifyToken, async (req, res) => {
             const destinationData = req.body;
             const result = await destinationCollection.insertOne(destinationData)
             // console.log(result)
             res.json(result)
         })
 
-        app.patch('/destination/:id', async (req, res) => {
+        app.patch('/destination/:id', verifyToken, async (req, res) => {
             const { id } = req.params;
             const UpdateData = req.body;
             // console.log(UpdateData,'updatae Data')
@@ -59,27 +83,27 @@ async function run() {
             res.send(result)
         })
 
-        app.delete('/destination/:id',async(req,res)=>{
-            const {id}=req.params;
-            const result= await destinationCollection.deleteOne({_id:new ObjectId(id)})
+        app.delete('/destination/:id',verifyToken, async (req, res) => {
+            const { id } = req.params;
+            const result = await destinationCollection.deleteOne({ _id: new ObjectId(id) })
             res.send(result)
         })
 
-        app.get('/booking/:userId',async(req,res)=>{
-            const {userId}=req.params;
-            const result=await bookingCollection.find({userId:userId}).toArray()
+        app.get('/booking/:userId',verifyToken, async (req, res) => {
+            const { userId } = req.params;
+            const result = await bookingCollection.find({ userId: userId }).toArray()
             res.json(result)
         })
 
-        app.delete('/booking/:bookingId',async(req,res)=>{
-            const {bookingId}=req.params;
-            const result=await bookingCollection.deleteOne({_id:new ObjectId(bookingId)})
+        app.delete('/booking/:bookingId',verifyToken, async (req, res) => {
+            const { bookingId } = req.params;
+            const result = await bookingCollection.deleteOne({ _id: new ObjectId(bookingId) })
             res.json(result)
         })
 
-        app.post('/booking',async(req,res)=>{
-            const bookingData=req.body;
-            const result=await bookingCollection.insertOne(bookingData)
+        app.post('/booking',verifyToken, async (req, res) => {
+            const bookingData = req.body;
+            const result = await bookingCollection.insertOne(bookingData)
             res.json(result)
         })
 
