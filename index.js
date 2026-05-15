@@ -57,20 +57,20 @@ async function run() {
             res.json(result);
         })
 
-        app.get('/destination/:id',verifyToken, async (req, res) => {
+        app.get('/destination/:id', verifyToken, async (req, res) => {
             const { id } = req.params;
             const result = await destinationCollection.findOne({ _id: new ObjectId(id) })
             res.json(result)
         })
 
-        app.post('/destination',verifyToken, async (req, res) => {
+        app.post('/destination', verifyToken, async (req, res) => {
             const destinationData = req.body;
             const result = await destinationCollection.insertOne(destinationData)
             // console.log(result)
             res.json(result)
         })
 
-        app.patch('/destination/:id',verifyToken, async (req, res) => {
+        app.patch('/destination/:id', verifyToken, async (req, res) => {
             const { id } = req.params;
             const UpdateData = req.body;
             // console.log(UpdateData,'updatae Data')
@@ -83,7 +83,7 @@ async function run() {
             res.json(result)
         })
 
-        app.delete('/destination/:id',verifyToken, async (req, res) => {
+        app.delete('/destination/:id', verifyToken, async (req, res) => {
             const { id } = req.params;
             const result = await destinationCollection.deleteOne({ _id: new ObjectId(id) })
             res.json(result)
@@ -95,7 +95,7 @@ async function run() {
             res.json(result)
         })
 
-        app.delete('/booking/:bookingId',verifyToken, async (req, res) => {
+        app.delete('/booking/:bookingId', verifyToken, async (req, res) => {
             const { bookingId } = req.params;
             const result = await bookingCollection.deleteOne({ _id: new ObjectId(bookingId) })
             res.json(result)
