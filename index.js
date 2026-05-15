@@ -37,7 +37,7 @@ const verifyToken = async (req, res, next) => {
     }
     try {
         const { payload } = await jwtVerify(token, JWKS)
-        console.log(payload)
+        // console.log(payload)
         next()
     } catch (error) {
         return res.status(403).json({ message: 'forbidden' })
@@ -54,13 +54,13 @@ async function run() {
 
         app.get('/destination', async (req, res) => {
             const result = await destinationCollection.find().toArray()
-            res.send(result);
+            res.json(result);
         })
 
-        app.get('/destination/:id', verifyToken, async (req, res) => {
+        app.get('/destination/:id',verifyToken, async (req, res) => {
             const { id } = req.params;
             const result = await destinationCollection.findOne({ _id: new ObjectId(id) })
-            res.send(result)
+            res.json(result)
         })
 
         app.post('/destination',verifyToken, async (req, res) => {
@@ -70,7 +70,7 @@ async function run() {
             res.json(result)
         })
 
-        app.patch('/destination/:id', verifyToken, async (req, res) => {
+        app.patch('/destination/:id',verifyToken, async (req, res) => {
             const { id } = req.params;
             const UpdateData = req.body;
             // console.log(UpdateData,'updatae Data')
@@ -80,16 +80,16 @@ async function run() {
                 { $set: UpdateData }
             )
             // console.log(result,'result')
-            res.send(result)
+            res.json(result)
         })
 
         app.delete('/destination/:id',verifyToken, async (req, res) => {
             const { id } = req.params;
             const result = await destinationCollection.deleteOne({ _id: new ObjectId(id) })
-            res.send(result)
+            res.json(result)
         })
 
-        app.get('/booking/:userId',verifyToken, async (req, res) => {
+        app.get('/booking/:userId', verifyToken, async (req, res) => {
             const { userId } = req.params;
             const result = await bookingCollection.find({ userId: userId }).toArray()
             res.json(result)
@@ -101,7 +101,7 @@ async function run() {
             res.json(result)
         })
 
-        app.post('/booking',verifyToken, async (req, res) => {
+        app.post('/booking', async (req, res) => {
             const bookingData = req.body;
             const result = await bookingCollection.insertOne(bookingData)
             res.json(result)
